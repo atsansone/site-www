@@ -81,17 +81,11 @@ benefit alone.
 
 ## Built-in types
 
-Both JavaScript and Dart use data types.
-Types determine what kinds of values can be stored and what operations can be performed on a variable of that type.
-Dart differs from JavaScript in that it identifies as a strongly typed language.
-In practice, this means that all Dart types must meet one of three conditions:
+Both JavaScript and Dart provides a set of basic built-in data types.
 
-1. The analyzer can infer the type from the operations run on the variable.
-2. You must explicitly assign the type.
-3. You must set the type as `dynamic`.
-   This type disables static type checking for that variable.
+JavaScript has primitive types `num`, `string`, and `boolean` and the `null` value, and provides *arrays* and a `Map` type.
 
-Dart supports nullable and non-nullable versions of the following built-in types:
+Dart built-in types include:
 
 * Numbers (`num`, `int`, `double`)
 * Strings (`String`)
@@ -99,27 +93,20 @@ Dart supports nullable and non-nullable versions of the following built-in types
 * Lists (`List`, also known as arrays)
 * Sets (`Set`)
 * Maps (`Map`)
-* Symbols (`Symbol`)
 * The value `null` (`Null`)
 
 To learn more, check out [Built-in types][] in the [Dart Language Tour][].
 
-Most types in Dart are _reference_ types.
-Reference types store a memory address rather than the value itself.
-This address points to where the value can be found.
-Variables of some types cannot be changed. These types are called _immutable_.
-Of these _immutable_ types, Dart has some behave like _value_ types.
-These _canonical_ types store the data at the same memory address as the variable.
-
-* Immutable types include `int`, `double`, `bool`, and any `String`.
-* Canonical types include `int`, `double`, `bool`, and `String` constants
-  or literals.
+All types in Dart are objects types, and all values are objects. There are no “primitive types” like in JavaScript. The numbers, `bool`s  and `null` values are instead canonicalized, so there is only ever one `int` value with the numerical value 1.
 
 {{site.alert.note}}
   JavaScript has two equality operators, `==` and `===`.
   The `==` operator performs the equality test after doing any necessary
-  type conversions. The `===` operator doesn't perform type conversions.
-  Dart doesn't have an equivalent to `===`.
+  type conversions on or to primitive values.
+  The `===` operator doesn't perform type conversions.
+  Dart uses the `identical` function to check if two values are the same object,
+  and the `==` operator to check whether the objects consider themselves as equal.
+
 {{site.alert.end}}
 
 [Built-in types]: /guides/language/language-tour#built-in-types
@@ -127,21 +114,17 @@ These _canonical_ types store the data at the same memory address as the variabl
 
 For example:
 The equals operator `==` and the `identical()` method return `true`
-for the same values of number types. Review the example shown in the
-following code:
+for the same values of number types:
 
 {:.include-lang}
 ```dart
-var a = 1;
-var b = 1;
+var a = 2;
+var b = 1 + 1;
 
 print(a == b); // Prints true
-print(identical(a, b)); // Prints true
+print(identical(a, b)); // Prints true, there is only one "2" object.
 ```
 
-### Basic Types
-
-This section covers basic types.
 #### Numbers
 
 Dart has three data types for holding numbers:
@@ -150,10 +133,10 @@ Dart has three data types for holding numbers:
 : The equivalent to the generic number type in JavaScript.
 
 `int`
-: Any numeric value without a decimal point.
+: Numeric values without a fractional part.
 
 `double`
-: Any numeric value, including those with a decimal point.
+: Double precision (64-but) floating point numbers.
 
 All these types are also classes within the Dart API.
 Both the `int` and `double` types share `num` as their parent class:
@@ -162,12 +145,10 @@ Both the `int` and `double` types share `num` as their parent class:
   src="/assets/img/guides/number-classes.png"
   alt="num subclasses Object and int and double each subclass num">
 
-In Dart, numbers are objects.
-This means that the numbers expose their own utility functions.
-You don't need to assign a number to a variable before applying
-a function to it.
+Because Dart numbers are objects,
+they can expose their own utility functions as object methods.
 
-For example, to round a `double`:
+For example, to round a `double` to an integer:
 
 
 {:.include-lang}
@@ -186,20 +167,21 @@ var rounded = 2.5.round();
 #### Strings
 
 Strings in Dart work similarly to strings in JavaScript.
-To define a string literal, enclose it in single quotation marks (`'`).
-Dart allows you to use double quotation marks as well.
-This would allow you to use single quotation marks within the string
-without escaping. The majority of Dart developers use single quotes,
+To write a string literal, enclose it in single quotation marks (`'`) or double quotation marks (`"`).
+The majority of Dart developers use single quotes,
 but the language enforces no standard.
+Using double quotation marks allows you to use an apostrophe within the string, without *escaping* it.
 
 {:.include-lang}
 ```dart
 var a = 'This is a string.';
+var b = "Apostrophes aren't bad.";
 ```
 
 ##### Escaping special characters
 
-To include a character with another meaning in a string, like a `#`,
+To include a character with another meaning in a string, like a `$`,
+
 you must escape that character.
 Escaping special characters in Dart works like JavaScript and most other languages.
 To escape special characters, precede that character with the backslash character.
@@ -210,6 +192,8 @@ The following code shows some examples.
 ```dart
 final singleQuotes = 'I\'m learning Dart'; // I'm learning Dart
 final doubleQuotes = "Escaping the \" character"; // Escaping the " character
+final dollarEscape = 'The price is \$3.14.'; // The price is $3.14.
+final backslashEscape = 'The Dart string escape character is \\.';
 final unicode = '\u{1F60E}'; // 😎,  Unicode scalar U+1F60E
 ```
 
@@ -279,7 +263,8 @@ the literal is allowed to span multiple lines:
 ```dart
 final s2 = '''
 You can create
-multiline strings like this one.''';
+multiline strings like this one.
+''';
 
 final s3 = """
 This is also a
@@ -291,7 +276,7 @@ multiline string.""";
 ##### Equality
 
 To determine if two strings are equal, use the equal-to operator (`==`).
-If they contain the same sequence of code units, then two strings are equal.
+Two strings are equal if they contain the same sequence of code units.
 
 {:.include-lang}
 ```dart
@@ -305,25 +290,22 @@ assert(s1 ==
 
 #### Booleans
 
-Both Dart and JavaScript booleans represent a binary value.
-Each language has two objects that hold this type:
-the boolean literals `true` and `false`.
+Both Dart and JavaScript booleans represent a truth value, either true or false.
+Each language has two objects that hold this type,
+available as the boolean literals `true` and `false`.
 Both values compile as constants in both languages.
 
 
 {:.include-lang}
 ```js
-let a = true;
+let isBananaPeeled = false;
 ```
 
 
 {:.include-lang}
 ```dart
-var a = true;
+var isBananaPeeled = false;
 ```
-
-
-
 
 ## Variables
 
@@ -2329,9 +2311,9 @@ One example would be when returning a cached instance:
 class Logger {
   static final Map<String, Logger> _cache =
       <String, Logger>{};
- 
+
   final String name;
- 
+
   // Factory constructor that returns a cached copy,
   // or creates a new one if it is not yet available.
   factory Logger(String name) {
@@ -2388,15 +2370,15 @@ in the same way that JavaScript does.
 ```dart
 class Animal {
   int eyes;
- 
+
   Animal(this.eyes);
- 
+
   makeNoise() {
     print('???');
   }
 }
 class Cat extends Animal {
- 
+
   Cat(): super(2);
 
   @override
@@ -2477,7 +2459,7 @@ class Cat implements Consumer {
   @override
   consume() {
     print('Eating mice...');
-    super.consume(); 
+    super.consume();
     // Invalid. The superclass `Object` has no `consume` method.
   }
 }
@@ -2547,7 +2529,7 @@ class Flyer {
 class Walker {
   walk = () => console.log('Walks legs');
 }
- 
+
 class Bat extends Animal {}
 class Goose extends Animal {}
 class Dog extends Animal {}
@@ -2593,7 +2575,7 @@ class Flyer {
 class Walker {
   walk() => print('Walks legs');
 }
- 
+
 class Bat extends Animal with Flyer {}
 class Goose extends Animal with Flyer, Walker {}
 class Dog extends Animal with Walker {}
@@ -2714,11 +2696,11 @@ console.log(person.age);
 ```dart
 class Person {
   int _age = 0;
- 
+
   int get age {
     return _age;
   }
- 
+
   set age(int value) {
     if (value < 0) {
       throw ArgumentError(
